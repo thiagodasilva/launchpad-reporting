@@ -126,6 +126,10 @@ class Bug():
             if date_open > date_resolved:
                 return []
             result.append( {"date": date_open, "type": "Open"} )
+
+            if (date_in_progress is not None) and (date_open <= date_in_progress) and (date_in_progress <= date_resolved):
+                result.append( {"date": date_in_progress, "type": "In Progress"} )
+
             result.append( {"date": date_resolved, "type": "Resolved"} )
 
         # if the bug is "Verified", then our assumption is "Open" -> "Resolved" -> "Verified"
@@ -133,6 +137,10 @@ class Bug():
             if date_open > date_resolved:
                 return []
             result.append( {"date": date_open, "type": "Open"} )
+
+            if (date_in_progress is not None) and (date_open <= date_in_progress) and (date_in_progress <= date_resolved):
+                result.append( {"date": date_in_progress, "type": "In Progress"} )
+
             result.append( {"date": date_resolved, "type": "Resolved"} )
 
             if date_verified is None:
