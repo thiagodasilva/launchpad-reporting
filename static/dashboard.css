@@ -6,6 +6,10 @@
   height: 400px;
 }
 
+#bug-incoming-outgoing-chart svg {
+  height: 400px;
+}
+
 /*
  * Base structure
  */
