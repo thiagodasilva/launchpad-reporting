@@ -63,89 +63,65 @@ class Bug():
         self.id = str(self.web_link).rsplit('/', 1)[-1]
 
     def get_status_changes(self):
-        # Bug flow:
-        # 1. New (not targeted to any release)  ->  date_created
-        # 2. Open      -> date_triaged (date_confirmed, date_left_new, date_assigned). if still None, then date_in_progress
-        # 3. Resolved  -> date_fix_committed
-        # 4. Verified  -> date_fix_released
-        # also, may be 5. Incomplete -> date_incomplete
-
-        result = []
-
-        # When the bug was assigned to the release
-        date_open = self.date_triaged;
-        if date_open is None:
-            date_open = self.date_confirmed
-        if date_open is None:
-            date_open = self.date_left_new
-        if date_open is None:
-            date_open = self.date_assigned
-        if date_open is None:
-            date_open = self.date_in_progress
-
-        # When the bug went to in progress state
-        date_in_progress = self.date_in_progress
-        if date_in_progress is None:
-            date_in_progress = self.date_left_new
-
-        # When the bug was resolved or closed (e.g. as invalid)
-        date_resolved = self.date_fix_committed
-        if date_resolved is None:
-            date_resolved = self.date_closed    
-
-        # When the bug was verified
-        date_verified = self.date_fix_released
-
-        # When the bug was set as incomplete
-        date_incomplete = self.date_incomplete
+        # Bug statuses:
+        # * Incomplete -> date_incomplete
+        # * New (not targeted to any release)  ->  date_created
+        # * Open        -> date_triaged (date_confirmed, date_left_new, date_assigned)
+        # * In Progress -> date_in_progress
+        # * Resolved    -> date_fix_committed
+        # * Verified    -> date_fix_released
 
         # if the bug is "New", it should not be displayed on the chart
         if self.status in lpdata.LaunchpadData.BUG_STATUSES["New"]:
             return []
 
-        # if the bug is "Incomplete", then our assumption is "Open" -> "Incomplete"
-        if self.status in lpdata.LaunchpadData.BUG_STATUSES["Incomplete"]:
-            if date_open > date_incomplete:
-                return []
-            result.append( {"date": date_open, "type": "Open"} )
-            result.append( {"date": date_incomplete, "type": "Incomplete"} )
+        # list of dates
+        result = []
 
-        # if the bug is "Open", then our assumption is "Open". And it's not currently resolved
-        if (self.status in lpdata.LaunchpadData.BUG_STATUSES["Open"]) and (self.status != "In Progress"):
-            result.append( {"date": date_open, "type": "Open"} )
+        # When the bug was assigned to the release
+        date_open = min(d for d in [self.date_triaged, self.date_confirmed, self.date_left_new, self.date_assigned] if d is not None)
+        result.append( {"date": date_open, "type": "Open", "matches": [s for s in lpdata.LaunchpadData.BUG_STATUSES["Open"] if s != "In Progress"]} )
 
-        # if the bug is "In Progress", it will be shown as a special category
-        if (self.status in lpdata.LaunchpadData.BUG_STATUSES["Open"]) and (self.status == "In Progress"):
-            if date_open > date_in_progress:
-                return []
-            result.append( {"date": date_open, "type": "Open"} )
-            result.append( {"date": date_in_progress, "type": "In Progress"} )
+        # When the bug went to in progress state
+        date_in_progress = self.date_in_progress
+        result.append( {"date": date_in_progress, "type": "In Progress", "matches": ["In Progress"]} )
 
-        # if the bug is "Closed" (but not verified), then our assumption is "Open" -> "Resolved" 
-        if (self.status in lpdata.LaunchpadData.BUG_STATUSES["Closed"]) and (self.status != "Fix Released"):
-            if date_open > date_resolved:
-                return []
-            result.append( {"date": date_open, "type": "Open"} )
+        # When the bug was resolved or closed (e.g. as invalid)
+        date_resolved = next((d for d in [self.date_fix_committed, self.date_closed] if d is not None), None)
+        result.append( {"date": date_resolved, "type": "Resolved", "matches": [s for s in lpdata.LaunchpadData.BUG_STATUSES["Closed"] if s != "Fix Released"]} )
 
-            if (date_in_progress is not None) and (date_open <= date_in_progress) and (date_in_progress <= date_resolved):
-                result.append( {"date": date_in_progress, "type": "In Progress"} )
+        # When the bug was verified
+        date_verified = self.date_fix_released
+        result.append( {"date": date_verified, "type": "Verified", "matches": ["Fix Released"]} )
 
-            result.append( {"date": date_resolved, "type": "Resolved"} )
+        # When the bug was set as incomplete
+        date_incomplete = self.date_incomplete
+        result.append( {"date": date_incomplete, "type": "Incomplete", "matches": lpdata.LaunchpadData.BUG_STATUSES["Incomplete"]} )
 
-        # if the bug is "Verified", then our assumption is "Open" -> "Resolved" -> "Verified"
-        if (self.status in lpdata.LaunchpadData.BUG_STATUSES["Closed"]) and (self.status == "Fix Released"):
-            if date_open > date_resolved:
-                return []
-            result.append( {"date": date_open, "type": "Open"} )
+        # Remove all entries which have date as "None"
+        result = [e for e in result if e["date"] is not None]
 
-            if (date_in_progress is not None) and (date_open <= date_in_progress) and (date_in_progress <= date_resolved):
-                result.append( {"date": date_in_progress, "type": "In Progress"} )
+        # Filter dates and statuses which are out of line
+        for i in range(0, len(result)):
+            for j in range (i + 1, len(result)):
+                if result[i]["date"] > result[j]["date"]:
+                    result[i]["obsolete"] = True
 
-            result.append( {"date": date_resolved, "type": "Resolved"} )
+        # Remove all obsoleted entries
+        result = [e for e in result if not "obsolete" in e]
 
-            if date_verified is None:
-                date_verified = date_resolved
+        # Find the first element which matches our bug status
+        idx = -1
+        for i in range(0, len(result)):
+            if self.status in result[i]["matches"]:
+                idx = i
+                break
 
-            result.append( {"date": date_verified, "type": "Verified"} )
+        # The date for our status is not found. Not sure if it can happen
+        if idx < 0:
+            return []
+
+        # Get the corresponding prefix of result, so it ends with the right status (the status in which our bug is in)
+        result = result[:idx+1]
 
         return result
