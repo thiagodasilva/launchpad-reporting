@@ -1,71 +1,36 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<h2 class="sub-header">{{ bug_type }} Bugs: {{ bugs|length }} total</h2>
 <p>
-  <input type="checkbox" id="tagged"> Only customer-found</input>
+    <h4><input type="checkbox" id="tagged"> Only customer-found</input></h4>
 </p>
 
 <script>
 var customer_found = false;
 var pathname = window.location.pathname;
 
+function show_list_of_bugs(tags) {
+    $.get(pathname + "/bug_list", {'tags': tags},
+      function(data) {
+         $("#result").html(data);
+      });
+}
+show_list_of_bugs();
+
 <!--When user click on 'Only customer-found' checkbox, -->
 <!--we request list of ids for bugs with such tag.-->
-<!--Each bug in HTML has id. So we can hide all, and show only-->
-<!--those with ids we just received.-->
 
 $( "#tagged" ).change(function() {
     customer_found = $("#tagged").is(':checked');
     if (customer_found) {
-        $.getJSON(pathname + "/customer-found", {
-          }, function(data) {
-              $(".bug_row").hide();
-              $.each(data, function (key, val) {
-                  $("#" + val['id']).show();
-              });
-          });
+        show_list_of_bugs('customer-found');
     } else {
-        $(".bug_row").show();
+        show_list_of_bugs();
     }
 });
 
 </script>
 
-
 <div id="result">
 
-<div class="table-responsive">
-
-{% if breakdown_by_status %}
-
-... ... ...
-
-{% else %}
-
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>Bug #</th>
-      <th>Importance</th>
-      <th>Title</th>
-      <th>Assignee</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for b in bugs %}
-    <tr class="bug_row" id="{{ b.id }}">
-        <td><a href="{{ b.web_link }}">{{ b.id }}</a></td>
-        <td>{{ b.importance }}</td>
-        <td>{{ b.title }}</td>
-        <td><a href="{{ b.assignee_link }}">{{ b.assignee }}</a></td>
-        <td>{{ b.status }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-
-{% endif %}
 {% endblock %}
