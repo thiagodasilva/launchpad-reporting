@@ -20,6 +20,16 @@ def bug_table_for_tag(project_name, bug_tag, milestone_name):
     bugs = lpdata.get_bugs(project_name, LaunchpadData.BUG_STATUSES_ALL, milestone_name, [bug_tag])
     return flask.render_template("bug_table.html", project=project, bugs=bugs, bug_tag=bug_tag, milestone_name=milestone_name, selected_bug_table=True, breakdown_by_status=True)
 
+# The following method is a bit hacky.
+@app.route('/project/<project_name>/bug_table_for_status/<bug_type>/<milestone_name>/<bug_tag>')
+def bug_ids_for_tag(project_name, bug_type, milestone_name, bug_tag):
+    project = lpdata.get_project(project_name)
+    bugs = lpdata.get_bugs(project_name, LaunchpadData.BUG_STATUSES[bug_type], milestone_name, [bug_tag])
+    data = [{'id': b.id} for b in bugs]
+    js = json.dumps(data)
+    resp = flask.Response(js, status=200, mimetype='application/json')
+    return resp
+
 @app.route('/project/<project_name>')
 def project_overview(project_name):
     project = lpdata.get_project(project_name)
