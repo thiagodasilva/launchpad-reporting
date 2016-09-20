@@ -30,7 +30,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Project: {{ project.name }}</a>
+          <a class="navbar-brand" href="#">Project: {{ project.display_name }}</a>
         </div>
         <!--
         <div class="navbar-collapse collapse">
@@ -59,15 +59,15 @@
             <li {% if selected_bug_table and bug_type == 'New' %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='New', milestone_name='None') }}">New bugs</a></li>
           </ul>
 
-          {% for m in project.active_milestones|sort %}
+          {% for m in ['None']|sort %}
             <ul class="nav nav-sidebar">
-              <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">{{ m }}: Bug Trends</a></li>
-              <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">{{ m }}: Open Bugs</a></li>
-              <li {% if selected_bug_table and bug_type == 'Incomplete' and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Incomplete', milestone_name=m) }}">{{ m }}: Incomplete Bugs</a></li>
-              <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">{{ m }}: Closed Bugs</a></li>
+              <li {% if selected_bug_trends and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_trends', project_name=project.name, milestone_name=m) }}">Bug Trends</a></li>
+              <li {% if selected_bug_table and bug_type == 'Open' and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Open', milestone_name=m) }}">Open Bugs</a></li>
+              <li {% if selected_bug_table and bug_type == 'Incomplete' and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Incomplete', milestone_name=m) }}">Incomplete Bugs</a></li>
+              <li {% if selected_bug_table and bug_type == 'Closed' and milestone_name == m %}class="active"{% endif %}><a href="{{ url_for('bug_table_for_status', project_name=project.name, bug_type='Closed', milestone_name=m) }}">Closed Bugs</a></li>
             </ul>
-          {% endfor %}          
-          
+          {% endfor %}
+
         </div>
         <!-- Bootstrap core JavaScript
         ================================================== -->

@@ -37,7 +37,7 @@ class Bug():
         return filter(lambda x: x in string.printable, s)
 
     def __init__(self, lpbug):
-        
+
         # straight copy fields from the lpbug object. this do not make any calls to LP
         for name in FIELDS_TO_COPY:
             setattr(self, name, getattr(lpbug, name))
@@ -79,7 +79,7 @@ class Bug():
         result = []
 
         # When the bug was assigned to the release
-        date_open = min(d for d in [self.date_triaged, self.date_confirmed, self.date_left_new, self.date_assigned] if d is not None)
+        date_open = min(d for d in [self.date_created, self.date_triaged, self.date_confirmed, self.date_left_new, self.date_assigned] if d is not None)
         result.append( {"date": date_open, "type": "Open", "matches": [s for s in lpdata.LaunchpadData.BUG_STATUSES["Open"] if s != "In Progress"]} )
 
         # When the bug went to in progress state

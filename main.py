@@ -44,7 +44,7 @@ def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
 
 @app.route('/')
 def main_page():
-    return flask.redirect(flask.url_for("project_overview", project_name="fuel"))
+    return flask.redirect(flask.url_for("project_overview", project_name="Swift"))
 
 if __name__ == "__main__":
     app.run(host = "0.0.0.0", port = 4444, threaded = True, debug = True)
