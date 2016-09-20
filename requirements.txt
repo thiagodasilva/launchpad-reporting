@@ -2,3 +2,5 @@ flask
 requests
 launchpadlib
 pytz
+cryptography
+simplejson
