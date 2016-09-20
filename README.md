@@ -34,4 +34,4 @@ Limitations
 
 Screenshots
 ===========
-![alt tag](https://raw2.github.com/ralekseenkov/launchpad-reporting/master/screenshots/release_bug_trends.png)
+![Image of Dashboard](https://github.com/thiagodasilva/launchpad-reporting/screenshots/release_bug_trends.png)
