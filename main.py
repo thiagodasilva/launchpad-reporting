@@ -1,5 +1,5 @@
 #import httplib2
-import requests, json, flask
+import flask
 from launchpad.release_chart import ReleaseChart
 from launchpad.lpdata import LaunchpadData
 
