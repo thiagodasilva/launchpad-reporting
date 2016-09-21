@@ -8,7 +8,7 @@
 
 {% else %}
 
-<table class="table table-striped">
+<table class="table table-striped bug_list">
   <thead>
     <tr>
       <th>Bug #</th>
@@ -31,6 +31,12 @@
   </tbody>
 </table>
 </div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='jquery/jquery.tablesorter.js') }}"></script>
+
+<script type="text/javascript">
+  $('.bug_list').tablesorter();
+</script>
 
 {% endif %}
 {% endblock %}

@@ -109,3 +109,18 @@ body {
   display: inline-block;
   border-radius: 50%;
 }
+
+.bug_list thead tr th {
+  cursor: pointer;
+}
+
+.headerSortUp:after {
+  content: '\0000a0\e094';
+  font-family: 'Glyphicons Halflings';
+  font-size: 8px;
+}
+.headerSortDown:after {
+  content: '\0000a0\e093';
+  font-family: 'Glyphicons Halflings';
+  font-size: 8px;
+}
