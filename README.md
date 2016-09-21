@@ -14,7 +14,7 @@ Getting Started
 # docker run -d -p 4444:4444 lp_report:dev
 ```
 
-After that, open http://localhost:4444 in your browser.
+After that, open `http://localhost:4444` in your browser.
 
 
 How it works
