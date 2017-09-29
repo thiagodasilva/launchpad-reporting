@@ -4,27 +4,29 @@ from launchpad.lpdata import LaunchpadData
 from collections import OrderedDict
 from collections import defaultdict
 from bisect import bisect_left
-from operator import itemgetter
 
-class ReleaseChart():
 
-    def __init__(self, lpdata, project_name, milestone_name):
+class ReleaseChart(object):
+
+    def __init__(self, lpdata, project_name, time_range):
         self.bugs = []
-        for status in LaunchpadData.BUG_STATUSES:
-            self.bugs += lpdata.get_bugs(project_name, LaunchpadData.BUG_STATUSES[status], milestone_name);
+        self.bugs += lpdata.get_bugs(
+            project_name, LaunchpadData.BUG_STATUSES_ALL,
+            time_range=time_range)
 
     def get_trends_data(self):
 
         # the chart will span until tomorrow
-        window_end = datetime.datetime.now(pytz.utc) + datetime.timedelta(days=1)
+        window_end = datetime.datetime.now(pytz.utc) + \
+            datetime.timedelta(days=1)
 
         # add chart series in order from bottom to top
         data = OrderedDict()
-        data["Verified"]    = [];
-        data["Resolved"]    = [];
-        data["In Progress"] = [];
-        data["Open"]        = [];
-        data["Incomplete"]  = [];
+        data["Resolved"] = []
+        data["In Progress"] = []
+        data["Open"] = []
+        data["Incomplete"] = []
+        data['New'] = []
 
         # all dates
         all_dates = set()
@@ -32,7 +34,7 @@ class ReleaseChart():
         # process each bug and its events
         for b in self.bugs:
             events = b.get_status_changes()
-            events.append( {"date": window_end, "type": "N/A"} )
+            events.append({"date": window_end, "type": "N/A"})
             for i in range(0, len(events) - 1):
                 e1 = events[i]
                 e2 = events[i + 1]
@@ -45,8 +47,8 @@ class ReleaseChart():
                     d1 = d1.replace(hour=0, minute=0, second=0, microsecond=0)
                     d2 = d2.replace(hour=0, minute=0, second=0, microsecond=0)
 
-                    data[t].append( {"date" : d1, "num": 1} )
-                    data[t].append( {"date" : d2, "num": -1} )
+                    data[t].append({"date": d1, "num": 1})
+                    data[t].append({"date": d2, "num": -1})
                     all_dates.add(d1)
                     all_dates.add(d2)
 
@@ -88,8 +90,12 @@ class ReleaseChart():
             values = []
             for idx in range(0, n - 1):
                 chart_seconds = (all_dates_sorted[idx] - d3_start).total_seconds() * 1000.0
-                values.append( [int(chart_seconds), all_dates_values[idx]] )
-            chart.append( {'key': t, 'values': values})
+                values.append([int(chart_seconds), all_dates_values[idx]])
+
+            chart.append(
+                {'key': t,
+                 'visible': False if t in ['Resolved'] else True,
+                 'values': values})
 
         return chart
 

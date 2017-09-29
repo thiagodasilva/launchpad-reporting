@@ -32,14 +32,14 @@ def bug_trends(project_name, milestone_name):
     project = lpdata.get_project(project_name)
     return flask.render_template("bug_trends.html", project=project, milestone_name=milestone_name, selected_bug_trends=True)
 
-@app.route('/project/<project_name>/api/release_chart_trends/<milestone_name>/get_data')
-def bug_report_trends_data(project_name, milestone_name):
-    data = ReleaseChart(lpdata, project_name, milestone_name).get_trends_data()
+@app.route('/project/<project_name>/api/release_chart_trends/<time_range>/get_data')
+def bug_report_trends_data(project_name, time_range):
+    data = ReleaseChart(lpdata, project_name, time_range).get_trends_data()
     return flask.json.dumps(data)
 
-@app.route('/project/<project_name>/api/release_chart_incoming_outgoing/<milestone_name>/get_data')
-def bug_report_get_incoming_outgoing_data(project_name, milestone_name):
-    data = ReleaseChart(lpdata, project_name, milestone_name).get_incoming_outgoing_data()
+@app.route('/project/<project_name>/api/release_chart_incoming_outgoing/<time_range>/get_data')
+def bug_report_get_incoming_outgoing_data(project_name, time_range):
+    data = ReleaseChart(lpdata, project_name, time_range).get_incoming_outgoing_data()
     return flask.json.dumps(data)
 
 @app.route('/')

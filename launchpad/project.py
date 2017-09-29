@@ -6,7 +6,8 @@ FIELDS_TO_COPY = [
     "summary"
 ]
 
-class Project():
+
+class Project(object):
 
     def __init__(self, lpproject):
         

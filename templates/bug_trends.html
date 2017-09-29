@@ -1,8 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<h2 class="page-header">Bug Trends</h2>
 
+<a href='#' id="seven_d">7d</a>
+<a href='#' id="one_m">1m</a>
+<a href='#' id="three_m">3m</a>
+<a href='#' id="six_m">6m</a>
+<a href='#' id="one_y">1y</a>
+<a href='#' id="all">All</a>
+<br/>
+<br/>
+<h2 class="page-header">Bug Trends</h2>
 <div class="row placeholders">
   <div id="bug-report-chart">
     <img src="{{ url_for('static', filename='loader.gif') }}" />
@@ -22,88 +30,126 @@
 <script src="{{ url_for('static', filename='d3/d3.v3.js') }}"></script>
 <script src="{{ url_for('static', filename='nvd3/nv.d3.js') }}"></script>
 
+
 <script>
 
-  <!-- Release bug trend chart -->
-  d3.json('/project/{{ project.name }}/api/release_chart_trends/{{ milestone_name }}/get_data', function(data) {
+  //<!-- Release bug trend chart -->
+  var trendChart;
+  var trendChartData;
+  d3.json('/project/{{ project.name }}/api/release_chart_trends/90/get_data', function(data) {
     nv.addGraph(function() {
-      var chart = nv.models.stackedAreaChart()
+      trendChart = nv.models.stackedAreaChart()
                     .x(function(d) { return d[0] })
                     .y(function(d) { return d[1] })
-                    .color(function(d) {
-                      colors = {
-                        "Open": "#FEA455", // dark orange
-                        "Incomplete": "#E16767", // dark red
-                        "Resolved": "#B6E7AC", // light green
-                        "Verified": "#6ABB6A", // dark green
-                        "In Progress": "#619FC9" // dark blue
-                      };
-                      return colors[d["key"]];
-                    })
                     .clipEdge(true)
                     .margin({left: 75})
+                    .showControls(false)
                     .useInteractiveGuideline(true)
 
-      chart.xAxis
+      trendChart.xAxis
           .showMaxMin(true)
           .axisLabel('Date')
           .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
 
-      chart.yAxis
+      trendChart.yAxis
           .showMaxMin(true)
           .axisLabel('# of bugs')
           .tickFormat(d3.format(',.0f'));
 
-      d3.select('#bug-report-chart svg')
-          .datum(data)
-          .transition().duration(500).call(chart);
+      trendChartData = d3.select('#bug-report-chart svg').datum(data)
+      trendChartData.transition().duration(500)
+          .call(trendChart)
+          .each("end", function() {
+              d3.select("g.nv-legendWrap").selectAll("g.nv-series")
+                  .filter(function(d) { return d.visible == false; })
+                  .each(function(d) {
+                      this.dispatchEvent(new Event("click"));
+                  });
+          });
 
-      nv.utils.windowResize(chart.update);
+      nv.utils.windowResize(trendChart.update);
 
       $('#bug-report-chart img').hide();
 
-      return chart;
+      return trendChart;
     });
   })
 
-  <!-- Release incoming/outgoing bug chart -->
-  d3.json('/project/{{ project.name }}/api/release_chart_incoming_outgoing/{{ milestone_name }}/get_data', function(data) {
+
+  // Release incoming/outgoing bug chart
+  var ioChart;
+  var ioChartData;
+  d3.json('/project/{{ project.name }}/api/release_chart_incoming_outgoing/90/get_data', function(data) {
     nv.addGraph(function() {
-        var chart = nv.models.multiBarChart()
+        ioChart = nv.models.multiBarChart()
           .x(function(d) { return d[0] })
           .y(function(d) { return d[1] })
           .color(function(d) {
             colors = {
               "Incoming": "#E16767", // dark red
-              "Outgoing": "#B6E7AC"  // light green
+              "Outgoing": "#196d2b"  // dark green
             };
             return colors[d["key"]];
           })
-          .showControls(true)   //Allow user to switch between 'Grouped' and 'Stacked' mode.
+          .showControls(false)   //Allow user to switch between 'Grouped' and 'Stacked' mode.
           .groupSpacing(0.1)    //Distance between each group of bars.
-        ;
 
-        chart.xAxis
+        ioChart.xAxis
           .showMaxMin(true)
           .axisLabel('Date')
           .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
 
-        chart.yAxis
+        ioChart.yAxis
           .showMaxMin(true)
           .axisLabel('# of bugs')
           .tickFormat(d3.format(',.0f'));
 
-       d3.select('#bug-incoming-outgoing-chart svg')
-          .datum(data)
-          .transition().duration(500).call(chart);
+        ioChartData = d3.select('#bug-incoming-outgoing-chart svg').datum(data)
+        ioChartData.transition().duration(500).call(ioChart);
 
-      nv.utils.windowResize(chart.update);
+      nv.utils.windowResize(ioChart.update);
 
       $('#bug-incoming-outgoing-chart img').hide();
 
-      return chart;
+      return ioChart;
     });
   })
+
+  function update(date_range) {
+    $('#bug-report-chart img').show()
+    $('#bug-incoming-outgoing-chart img').show();
+    d3.selectAll("#bug-report-chart svg > *").remove();
+    d3.selectAll("#bug-incoming-outgoing-chart svg > *").remove();
+    get_io_url = '/project/{{ project.name }}/api/release_chart_incoming_outgoing/' + date_range + '/get_data';
+    d3.json(get_io_url, function(data) {
+        ioChartData.datum(data).transition().duration(500).call(ioChart);
+        nv.utils.windowResize(ioChart.update);
+        $('#bug-incoming-outgoing-chart img').hide();
+    });
+
+    get_data_url = '/project/{{ project.name }}/api/release_chart_trends/' + date_range + '/get_data';
+    d3.json(get_data_url, function(data) {
+        trendChartData.datum(data).transition().duration(500)
+            .call(trendChart)
+            .each("end", function() {
+                d3.select("g.nv-legendWrap").selectAll("g.nv-series")
+                    .filter(function(d) { return d.visible == false; })
+                    .each(function(d) {
+                        this.dispatchEvent(new Event("click"));
+                    });
+            });
+        nv.utils.windowResize(trendChart.update);
+        $('#bug-report-chart img').hide()
+    });
+  }
+
+  // Update the CHART
+  d3.select("#seven_d").on("click", function() { update('7'); });
+  d3.select("#one_m").on("click", function() { update('30'); });
+  d3.select("#three_m").on("click", function() { update('90'); });
+  d3.select("#six_m").on("click", function() { update('180'); });
+  d3.select("#one_y").on("click", function() { update('365'); });
+  d3.select("#all").on("click", function() { update('all'); });
 
 </script>
 
