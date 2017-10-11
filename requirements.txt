@@ -5,3 +5,4 @@ launchpadlib
 pytz
 cryptography
 simplejson
+python-dateutil
